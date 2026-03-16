@@ -125,6 +125,7 @@ struct TicketView: View {
             }
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             startEntryAnimation()
         }

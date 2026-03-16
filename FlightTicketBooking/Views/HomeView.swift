@@ -11,8 +11,9 @@ struct HomeView: View {
     @State private var cardOffsetY: CGFloat = 50
     @State private var cardOpacity: Double = 0
     
-    // For Navigation link trigger
+    // For Navigation & Sheets
     @State private var showSearchComplete = false
+    @State private var showTravellerSheet = false
     
     var body: some View {
         NavigationStack {
@@ -83,6 +84,20 @@ struct HomeView: View {
                         // Large Floating Search Card
                         VStack(spacing: AppSpacing.m) {
                             
+                            // 0. Trip Type Selector
+                            HStack {
+                                Spacer()
+                                Picker("Trip Type", selection: $viewModel.tripType) {
+                                    ForEach(TripType.allCases, id: \.self) { type in
+                                        Text(type.rawValue).tag(type)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(width: 200)
+                                Spacer()
+                            }
+                            .padding(.bottom, AppSpacing.xs)
+                            
                             // 1. City Selectors (Navigation Links to Search Screen)
                             VStack(spacing: 0) {
                                 NavigationLink(destination: CitySearchView(selectedCityCode: $viewModel.boardingAirport)) {
@@ -141,14 +156,24 @@ struct HomeView: View {
                                     .background(Color.white.opacity(0.7))
                                     .cornerRadius(16)
                                     
-                                    // Return Date (Optional)
+                                    // Return Date (Optional/Required based on TripType)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Return (Optional)")
+                                        Text("Return")
                                             .typography(AppTypography.caption)
                                             .foregroundColor(AppColors.textSecondary)
-                                        DatePicker("", selection: $viewModel.returnDate, displayedComponents: .date)
-                                            .labelsHidden()
-                                            .accentColor(AppColors.primary)
+                                        if viewModel.tripType == .roundTrip {
+                                            DatePicker("", selection: $viewModel.returnDate, displayedComponents: .date)
+                                                .labelsHidden()
+                                                .accentColor(AppColors.primary)
+                                        } else {
+                                            Text("Tap to add")
+                                                .font(AppTypography.bodyMedium)
+                                                .foregroundColor(AppColors.primary)
+                                                .padding(.vertical, 6)
+                                                .onTapGesture {
+                                                    withAnimation { viewModel.tripType = .roundTrip }
+                                                }
+                                        }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(AppSpacing.s)
@@ -156,42 +181,35 @@ struct HomeView: View {
                                     .cornerRadius(16)
                                 }
                                 
-                                // Second Row: Passengers
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Passengers")
-                                        .typography(AppTypography.caption)
-                                        .foregroundColor(AppColors.textSecondary)
-                                    
+                                // Second Row: Travellers & Class
+                                Button(action: {
+                                    HapticManager.shared.selection()
+                                    showTravellerSheet = true
+                                }) {
                                     HStack {
-                                        Text("\(viewModel.passengerCount) Adult")
-                                            .font(AppTypography.bodyMedium)
-                                        
-                                        Spacer()
-                                        
-                                        HStack(spacing: AppSpacing.s) {
-                                            Button(action: {
-                                                if viewModel.passengerCount > 1 { viewModel.passengerCount -= 1 }
-                                                HapticManager.shared.selection()
-                                            }) {
-                                                Image(systemName: "minus.square.fill")
-                                                    .foregroundColor(viewModel.passengerCount > 1 ? AppColors.primary : Color.gray.opacity(0.3))
-                                                    .font(.system(size: 28))
-                                            }
-                                            
-                                            Button(action: {
-                                                if viewModel.passengerCount < 9 { viewModel.passengerCount += 1 }
-                                                HapticManager.shared.selection()
-                                            }) {
-                                                Image(systemName: "plus.square.fill")
-                                                    .foregroundColor(viewModel.passengerCount < 9 ? AppColors.primary : Color.gray.opacity(0.3))
-                                                    .font(.system(size: 28))
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Travellers & Class")
+                                                .typography(AppTypography.caption)
+                                                .foregroundColor(AppColors.textSecondary)
+                                            HStack(spacing: 8) {
+                                                Text("\(viewModel.passengerCount) Traveller\(viewModel.passengerCount > 1 ? "s" : "")")
+                                                    .font(AppTypography.bodyMedium)
+                                                    .foregroundColor(AppColors.textPrimary)
+                                                Text("•")
+                                                    .foregroundColor(AppColors.textSecondary)
+                                                Text(viewModel.cabinClass)
+                                                    .font(AppTypography.bodyMedium)
+                                                    .foregroundColor(AppColors.textPrimary)
                                             }
                                         }
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                            .foregroundColor(AppColors.textSecondary)
                                     }
+                                    .padding(AppSpacing.s)
+                                    .background(Color.white.opacity(0.7))
+                                    .cornerRadius(16)
                                 }
-                                .padding(AppSpacing.s)
-                                .background(Color.white.opacity(0.7))
-                                .cornerRadius(16)
                             }
                             
                             // Search Button
@@ -244,6 +262,15 @@ struct HomeView: View {
                         .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 15)
                         .offset(y: cardOffsetY)
                         .opacity(cardOpacity)
+                        
+                        // Recent Searches
+                        RecentSearchesView()
+                            .padding(.top, AppSpacing.m)
+                        
+                        // Offers Carousel
+                        OffersCarousel()
+                            .padding(.top, AppSpacing.m)
+                            .padding(.bottom, 100)
                     }
                     .padding(.horizontal, AppSpacing.m)
                 }
@@ -254,6 +281,9 @@ struct HomeView: View {
             }
             .onAppear {
                 startAnimations()
+            }
+            .sheet(isPresented: $showTravellerSheet) {
+                TravellerSelectionSheet(viewModel: viewModel)
             }
         }
     }

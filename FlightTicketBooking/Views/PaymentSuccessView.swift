@@ -134,6 +134,7 @@ struct PaymentSuccessView: View {
                 .rotationEffect(.degrees(10))
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             startSuccessSequence()
         }

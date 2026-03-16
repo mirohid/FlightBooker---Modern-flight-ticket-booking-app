@@ -41,7 +41,7 @@ struct BoardingAnimationView: View {
                         .opacity(opacity)
                 }
             } else {
-                SeatSelectionView(flight: flight)
+                SeatSelectionView(flight: flight, baseAmount: flight.price)
                     .transition(.opacity)
             }
         }

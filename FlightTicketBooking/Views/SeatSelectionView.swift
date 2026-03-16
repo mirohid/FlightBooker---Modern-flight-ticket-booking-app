@@ -7,8 +7,8 @@ struct SeatSelectionView: View {
     // For Navigation Link
     @State private var showPayment = false
     
-    init(flight: Flight) {
-        _viewModel = StateObject(wrappedValue: SeatSelectionViewModel(flight: flight))
+    init(flight: Flight, baseAmount: Double) {
+        _viewModel = StateObject(wrappedValue: SeatSelectionViewModel(flight: flight, baseAmount: baseAmount))
     }
     
     var body: some View {
@@ -129,6 +129,7 @@ struct SeatSelectionView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             withAnimation(AnimationManager.springSmooth) {
                 isAnimating = true
@@ -156,7 +157,7 @@ struct LegendItem: View {
 struct SeatSelectionView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            SeatSelectionView(flight: MockData.flights[0])
+            SeatSelectionView(flight: MockData.flights[0], baseAmount: MockData.flights[0].price)
         }
     }
 }

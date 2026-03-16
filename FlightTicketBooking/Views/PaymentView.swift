@@ -131,6 +131,7 @@ struct PaymentView: View {
             }
         }
         .navigationTitle("Payment Details")
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             withAnimation(AnimationManager.springSmooth) {
                 isAnimating = true

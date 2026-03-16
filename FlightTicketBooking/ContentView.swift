@@ -14,7 +14,7 @@ struct ContentView: View {
                 .transition(.opacity)
                 .zIndex(1)
             } else {
-                HomeView()
+                AppTabView()
                     .transition(.opacity)
                     .zIndex(0)
             }
